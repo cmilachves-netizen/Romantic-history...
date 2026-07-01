@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biblioteca de Romance</title>
+
+<style>
+/* ESTILOS GENERALES - LIBRO ANTIGUO */
+body {
+    margin: 0;
+    font-family: "Georgia", serif;
+    font-style: italic; /* Todo el sitio en letra cursiva */
+    background-color: #f5edd6; /* Beige antiguo */
+    color: #3b2f2f;
+    line-height: 1.6;
+}
+
+/* HEADER */
+header {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 38px;
+    color: #5a1216; /* Rojo oscuro */
+    border-bottom: 2px double #5a1216;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* NAVEGACIÓN ENTRE PÁGINAS/VISTAS */
+nav {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: #5a1216;
+    font-family: "Georgia", serif;
+    font-style: italic;
+    font-size: 18px;
+    margin: 0 15px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-bottom: 1px solid transparent;
+    transition: 0.3s;
+}
+
+.nav-btn.active, .nav-btn:hover {
+    border-bottom: 1px solid #5a1216;
+    font-weight: bold;
+}
+
+/* BUSCADOR */
+.search-container {
+    text-align: center;
+    margin: 30px auto;
+}
+
+input {
+    width: 60%;
+    max-width: 450px;
+    padding: 12px;
+    border: 1px solid #5a1216;
+    background-color: #fdfbf7;
+    outline: none;
+    font-family: "Georgia", serif;
+    font-style: italic;
+    font-size: 16px;
+    color: #3b2f2f;
+}
+
+/* CONTENEDOR DE LIBROS */
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+
+.book {
+    background: #fbf6e9;
+    border: 1px solid #d3c2a3;
+    border-left: 5px solid #5a1216;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+}
+
+h2 {
+    margin: 0 0 10px 0;
+    color: #5a1216;
+    font-size: 26px;
+}
+
+.meta-info {
+    color: #6b4b4b;
+    font-size: 15px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.synopsis {
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+/* INTERACCIONES Y BOTONES */
+.actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+button.btn-action {
+    padding: 10px 18px;
+    border: 1px solid #5a1216;
+    background: #5a1216;
+    color: #f5edd6;
+    font-family: "Georgia", serif;
+    font-style: italic;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button.btn-action:hover {
+    background: #f5edd6;
+    color: #5a1216;
+}
+
+button.btn-fav {
+    background: transparent;
+    color: #5a1216;
+}
+
+button.btn-fav:hover {
+    background: #5a1216;
+    color: #f5edd6;
+}
+
+/* SECCIÓN DE CALIFICACIÓN */
+.rating-box {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stars {
+    display: inline-block;
+}
+
+.star {
+    font-size: 22px;
+    color: #d3c2a3;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star.active {
+    color: #5a1216; /* Estrellas doradas cambian a rojo oscuro para mantener la estética */
+}
+</style>
+</head>
+
+<body>
+
+<header>Biblioteca de Romance</header>
+
+<nav>
+    <button class="nav-btn active" id="btn-todos" onclick="cambiarVista('todos')">Todos los Libros</button>
+    <button class="nav-btn" id="btn-favs" onclick="cambiarVista('favoritos')">Mi Biblioteca de Favoritos</button>
+</nav>
+
+<div class="search-container" id="bloque-buscador">
+    <input id="buscador" placeholder="Buscar por título, autora o tipo de romance..." onkeyup="buscar()">
+</div>
+
+<div class="container" id="lista"></div>
+
+<script>
+/* ===== BASE DE DATOS DE LIBROS (CON CLASIFICACIÓN / GÉNERO) ===== */
+const libros = [
+    {
+        id: 1,
+        titulo: "Orgullo y Prejuicio",
+        autor: "Jane Austen",
+        anio: "1813",
+        genero: "Romance Clásico / Regencia",
+        desc: "Elizabeth Bennet y Mr. Darcy viven un romance marcado por el orgullo, las diferencias sociales y el crecimiento personal en la Inglaterra del siglo XIX.",
+        link: "https://www.amazon.com/dp/0141439513",
+        rating: 5,
+        favorito: false
+    },
+    {
+        id: 2,
+        titulo: "Sentido y Sensibilidad",
+        autor: "Jane Austen",
+        anio: "1811",
+        genero: "Romance Clásico / Drama",
+        desc: "Dos hermanas con temperamentos completamente opuestos enfrentan el amor, el desengaño y las estrictas normas de la sociedad tras la pérdida de su patrimonio.",
+        link: "https://www.amazon.com/dp/0141439661",
+        rating: 4,
+        favorito: false
+    },
+    {
+        id: 3,
+        titulo: "Jane Eyre",
+        autor: "Charlotte Brontë",
+        anio: "1847",
+        genero: "Romance Gótico",
+        desc: "Una historia de amor intensa y desafiante entre una institutriz huérfana de fuerte espíritu y su misterioso e imponente empleador, el señor Rochester.",
+        link: "https://www.amazon.com/dp/0141441143",
+        rating: 5,
+        favorito: false
+    },
+    {
+        id: 4,
+        titulo: "El cuaderno de Noah",
+        autor: "Nicholas Sparks",
+        anio: "1996",
+        genero: "Romance Contemporáneo / Drama",
+        desc: "Un amor pasional de la juventud que logra resistir las décadas, la separación social y los estragos de la pérdida de memoria en la vejez.",
+        link: "https://www.amazon.com/dp/1455582878",
+        rating: 4,
+        favorito: false
+    },
+    {
+        id: 5,
+        titulo: "Yo antes de ti",
+        autor: "Jojo Moyes",
+        anio: "2012",
+        genero: "Romance Contemporáneo / Trágico",
+        desc: "Louisa Clark, una chica alegre y ordinaria, acepta un empleo para cuidar a Will Traynor, un hombre exitoso que quedó tetrapléjico y ha perdido la voluntad de vivir.",
+        link: "https://www.amazon.com/dp/0143124544",
+        rating: 5,
+        favorito: false
+    },
+    {
+        id: 6,
+        titulo: "A todos los chicos de los que me enamoré",
+        autor: "Jenny Han",
+        anio: "2014",
+        genero: "Romance Juvenil",
+        desc: "Las cartas de amor secretas que Lara Jean escribió a los chicos de los que se enamoró terminan siendo enviadas misteriosamente, desatando un caos en su vida sentimental.",
+        link: "https://www.amazon.com/dp/1442426713",
+        rating: 4,
+        favorito: false
+    },
+    {
+        id: 7,
+        titulo: "El mapa de los anhelos",
+        autor: "Alice Kellen",
+        anio: "2022",
+        genero: "Romance Contemporáneo / New Adult",
+        desc: "Grace Peterson recibe un juego de pistas tras una dolorosa pérdida familiar, el cual la llevará a descubrir quién es y a conectar de forma profunda con alguien inesperado.",
+        link: "https://www.amazon.com",
+        rating: 5,
+        favorito: false
+    }
+];
+
+let vistaActual = 'todos'; // Puede ser 'todos' o 'favoritos'
+
+/* ===== RENDERIZADO DE LA PÁGINA ===== */
+function render(list = libros) {
+    const cont = document.getElementById("lista");
+    cont.innerHTML = "";
+
+    // Filtrar si estamos en la pestaña de favoritos
+    const librosAFiltrar = vistaActual === 'favoritos' ? list.filter(l => l.favorito) : list;
+
+    if (librosAFiltrar.length === 0) {
+        cont.innerHTML = `<p style="text-align:center; padding: 40px;">No se encontraron libros en esta sección.</p>`;
+        return;
+    }
+
+    librosAFiltrar.forEach(l => {
+        let div = document.createElement("div");
+        div.className = "book";
+
+        // Generar las estrellas dinámicamente según la calificación actual
+        let estrellasHtml = "";
+        for (let i = 1; i <= 5; i++) {
+            let claseActiva = i <= l.rating ? "active" : "";
+            estrellasHtml += `<span class="star ${claseActiva}" onclick="calificar(${l.id}, ${i})">&#9733;</span>`;
+        }
+
+        // Texto del botón de favoritos
+        let txtFav = l.favorito ? "Quitar de Favoritos" : "Agregar a Favoritos";
+
+        div.innerHTML = `
+            <h2>${l.titulo}</h2>
+            <span class="meta-info">Por ${l.autor} &bull; Año ${l.anio} &bull; Clasificación: ${l.genero}</span>
+            
+            <p class="synopsis">${l.desc}</p>
+            
+            <div class="rating-box">
+                <span>Tu calificación:</span>
+                <div class="stars">${estrellasHtml}</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn-action" onclick="window.open('${l.link}','_blank')">
+                    Ir a comprar directamente
+                </button>
+                <button class="btn-action btn-fav" onclick="alternarFavorito(${l.id})">
+                    ${txtFav}
+                </button>
+            </div>
+        `;
+        cont.appendChild(div);
+    });
+}
+
+/* ===== BUSCADOR GLOBAL (TÍTULO, AUTOR Y CLASIFICACIÓN) ===== */
+function buscar() {
+    let text = document.getElementById("buscador").value.toLowerCase();
+
+    let filtrados = libros.filter(l =>
+        l.titulo.toLowerCase().includes(text) ||
+        l.autor.toLowerCase().includes(text) ||
+        l.genero.toLowerCase().includes(text)
+    );
+
+    render(filtrados);
+}
+
+/* ===== INTERACCIONES: CALIFICAR ===== */
+function calificar(id, nuevaCalificacion) {
+    let libro = libros.find(l => l.id === id);
+    if (libro) {
+        libro.rating = nuevaCalificacion;
+        // Re-filtrar para mantener el estado de la búsqueda si la hubiera
+        buscar();
+    }
+}
+
+/* ===== INTERACCIONES: FAVORITOS ===== */
+function alternarFavorito(id) {
+    let libro = libros.find(l => l.id === id);
+    if (libro) {
+        libro.favorito = !libro.favorito;
+        buscar();
+    }
+}
+
+/* ===== CAMBIO DE PÁGINA / VISTA ===== */
+function cambiarVista(vista) {
+    vistaActual = vista;
+    
+    // Cambiar clases activas en el menú de navegación
+    document.getElementById("btn-todos").classList.toggle("active", vista === 'todos');
+    document.getElementById("btn-favs").classList.toggle("active", vista === 'favoritos');
+    
+    // Ocultar o mostrar el buscador según la pestaña
+    const bloqueBuscador = document.getElementById("bloque-buscador");
+    if(vista === 'favoritos') {
+        bloqueBuscador.style.display = "none";
+    } else {
+        bloqueBuscador.style.display = "block";
+        document.getElementById("buscador").value = ""; // Limpiar buscador al volver
+    }
+    
+    render();
+}
+
+// Inicializar la página por primera vez
+render();
+</script>
+
+</body>
+</html>
